@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="ur">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Inbox + Menu - One File</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;user-select:none}
+body{background:#eef2f5;height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden;align-items:center}
+#app{width:100%;max-width:500px;height:100vh;height:100dvh;background:#ffffff;display:flex;flex-direction:column;position:relative;box-shadow:0 0 15px rgba(0,0,0,0.08);overflow:hidden}
+
+/* TOP HEADER */
+.app-top-header{height:56px;background:#ffffff;display:flex;align-items:center;justify-content:space-between;padding:0 10px;border-bottom:1px solid #e5e7eb;flex-shrink:0;z-index:20;gap:10px}
+.left-icon,.right-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#111827;font-size:20px;transition:all 0.15s;flex-shrink:0}
+.left-icon:active,.right-icon:active{background:#f1f5f9}
+.top-search-wrap{flex:1;display:flex;align-items:center;gap:8px;background:#f1f5f9;border:1px solid #e5e7eb;border-radius:22px;padding:8px 14px;height:38px}
+.top-search-wrap i{color:#94a3b8;font-size:13px;flex-shrink:0}
+.top-search-wrap input{flex:1;background:transparent;border:none;outline:none;font-size:13.5px;color:#111}
+.top-search-wrap input::placeholder{color:#94a3b8}
+
+/* SIDEBAR */
+.sidebar-overlay{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.45);z-index:99;opacity:0;visibility:hidden;transition:all 0.3s ease}
+.sidebar-overlay.active{opacity:1;visibility:visible}
+.sidebar{position:absolute;top:0;left:-300px;width:285px;height:100%;background:#ffffff;z-index:100;box-shadow:4px 0 20px rgba(0,0,0,0.15);transition:left 0.3s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column;overflow:hidden}
+.sidebar.active{left:0}
+.sidebar-header{padding:16px 15px;background:#3b82f6;color:#fff;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.sidebar-header h3{font-size:15px}
+.sidebar-header .close-btn{width:30px;height:30px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.sidebar-profile{display:flex;align-items:center;gap:12px;padding:16px 18px;background:#f8fafc;border-bottom:1px solid #eef2f7}
+.sidebar-profile-avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#7c5cf0);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px}
+.sidebar-profile-name{font-weight:700;font-size:14px;color:#111}
+.sidebar-profile-sub{font-size:11.5px;color:#64748b;margin-top:2px}
+.sidebar-menu{flex:1;overflow-y:auto;padding:8px 0}
+.sidebar-menu-item{display:flex;align-items:center;gap:14px;padding:12px 18px;cursor:pointer;color:#334155;font-size:14px;font-weight:500;transition:all 0.15s;position:relative}
+.sidebar-menu-item i{width:20px;text-align:center;color:#64748b;font-size:15px}
+.sidebar-menu-item:active{background:#f1f5f9}
+.sidebar-menu-item.danger{color:#ef4444}
+.sidebar-menu-item.danger i{color:#ef4444}
+.sidebar-divider{height:1px;background:#f1f5f9;margin:6px 18px}
+.sidebar-footer{padding:10px 15px;border-top:1px solid #f1f5f9;flex-shrink:0}
+.sidebar-cancel-btn{width:100%;padding:10px;background:#f1f5f9;border:none;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;color:#475569;display:flex;align-items:center;justify-content:center;gap:8px}
+
+/* INBOX CSS */
+#view-messages{flex:1;display:flex;flex-direction:column;height:100%;background:#f2f2f2;overflow:hidden}
+.msg-inbox-wrap{flex:1;display:flex;flex-direction:column;background:#f2f2f2;overflow-y:auto}
+.y99-room{display:flex;align-items:center;gap:10px;background:#fff;padding:12px 14px;cursor:pointer;border-bottom:1px solid #f1f5f9;transition:background 0.15s}
+.y99-room:active{background:#f8fafc}
+.y99-room-icon{width:44px;height:44px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff}
+.y99-room-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.y99-room-top{display:flex;justify-content:space-between;align-items:center}
+.y99-room-name{font-size:13.5px;font-weight:700;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:70%;display:flex;align-items:center;gap:6px}
+.y99-room-time{font-size:11px;color:#3b82f6;flex-shrink:0}
+.y99-room-last{font-size:11.5px;color:#888;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Chat View */
+#y99ChatView{display:none;position:absolute;top:0;left:0;width:100%;height:100%;background:#f2f2f2;z-index:50;flex-direction:column}
+#y99ChatView.active{display:flex}
+.y99-chat-header{background:#fff;display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid #e5e7eb;flex-shrink:0}
+.y99-chat-back{width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#333;border-radius:50%}
+.y99-chat-back:active{background:#f1f5f9}
+.y99-chat-avatar{width:38px;height:38px;border-radius:10px;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px}
+.y99-chat-info{flex:1;min-width:0}
+.y99-chat-name{font-size:13.5px;font-weight:700;color:#111}
+.y99-chat-sub{font-size:11px;color:#22c55e}
+.y99-chat-messages{flex:1;overflow-y:auto;padding:12px 10px;display:flex;flex-direction:column;gap:10px;background:#eef2f5;background-image: radial-gradient(#e0e0e0 1px, transparent 1px);background-size:20px 20px}
+.y99-msg-row{display:flex;gap:8px;align-items:flex-end;animation:y99Pop 0.25s ease}
+@keyframes y99Pop{0%{opacity:0;transform:translateY(8px)}100%{opacity:1;transform:translateY(0)}}
+.y99-msg-avatar{width:28px;height:28px;border-radius:50%;background:#ddd;color:#555;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0}
+.y99-msg-avatar.bot{background:linear-gradient(135deg,#3b82f6,#7c5cf0);color:#fff}
+.y99-msg-bubble{background:#fff;padding:8px 12px;border-radius:14px;border-bottom-left-radius:4px;font-size:13px;color:#222;max-width:100%;line-height:1.4;box-shadow:0 1px 2px rgba(0,0,0,0.08)}
+.y99-msg-time{font-size:10px;color:#94a3b8;margin-top:2px}
+.y99-typing{display:flex;gap:4px;background:#fff;padding:10px 12px;border-radius:14px;border-bottom-left-radius:4px}
+.y99-typing span{width:6px;height:6px;background:#94a3b8;border-radius:50%;animation:y99Bounce 1.4s infinite}
+.y99-typing span:nth-child(2){animation-delay:0.2s}
+.y99-typing span:nth-child(3){animation-delay:0.4s}
+@keyframes y99Bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-4px)}}
+.section-label{padding:10px 14px 6px;font-size:11px;font-weight:800;color:#94a3b8;letter-spacing:0.8px;background:#f2f2f2}
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- Top Header with Search -->
+  <div class="app-top-header">
+    <div class="left-icon" onclick="openSidebar()"><i class="fa-solid fa-bars"></i></div>
+    <div class="top-search-wrap"><i class="fa-solid fa-magnifying-glass"></i><input type="text" placeholder="Search conversations..." oninput="filterRooms(this.value)"></div>
+    <div class="right-icon" onclick="logoutUser()"><i class="fa-solid fa-ellipsis-vertical"></i></div>
+  </div>
+
+  <!-- Sidebar -->
+  <div id="sidebarOverlay" class="sidebar-overlay" onclick="closeSidebar()"></div>
+  <div id="sidebar" class="sidebar">
+    <div class="sidebar-header"><h3>Menu</h3><div class="close-btn" onclick="closeSidebar()"><i class="fa-solid fa-xmark"></i></div></div>
+    <div class="sidebar-profile">
+      <div class="sidebar-profile-avatar" id="profileAvatar">G</div>
+      <div><div class="sidebar-profile-name" id="profileName">Loading...</div><div class="sidebar-profile-sub" id="profileEmail">guest mode</div></div>
+    </div>
+    <div class="sidebar-menu">
+      <div class="sidebar-menu-item" onclick="closeSidebar()"><i class="fa-solid fa-inbox"></i> Inbox</div>
+      <div class="sidebar-menu-item" onclick="alert('Profile: '+document.getElementById('profileEmail').innerText)"><i class="fa-solid fa-user"></i> Profile</div>
+      <div class="sidebar-menu-item"><i class="fa-solid fa-gear"></i> Settings</div>
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-menu-item danger" onclick="logoutUser()"><i class="fa-solid fa-right-from-bracket"></i> Logout</div>
+    </div>
+    <div class="sidebar-footer"><button class="sidebar-cancel-btn" onclick="closeSidebar()"><i class="fa-solid fa-xmark"></i> Close</button></div>
+  </div>
+
+  <!-- Inbox View -->
+  <div id="view-messages">
+    <div class="msg-inbox-wrap" id="msgInboxWrap">
+      <div class="section-label">PENDING</div>
+      <div id="pendingList"></div>
+      <div class="section-label">YOUR CONVERSATIONS</div>
+      <div id="yourList"><div id="yourEmpty" style="padding:18px;text-align:center;color:#94a3b8;font-size:12px;display:none;">No conversations yet</div></div>
+    </div>
+  </div>
+
+  <!-- Chat View -->
+  <div id="y99ChatView">
+    <div class="y99-chat-header">
+      <div class="y99-chat-back" onclick="closeY99Chat()"><i class="fa-solid fa-arrow-left"></i></div>
+      <div class="y99-chat-avatar" style="background:linear-gradient(135deg,#3b82f6,#7c5cf0)"><i class="fa-solid fa-bell"></i></div>
+      <div class="y99-chat-info"><div class="y99-chat-name" id="y99ChatName">Notification_Bot!</div><div class="y99-chat-sub" id="y99ChatSub">typing...</div></div>
+    </div>
+    <div class="y99-chat-messages" id="y99ChatMessages"></div>
+  </div>
+
+  <!-- Loading overlay for auth check -->
+  <div id="authLoading" style="position:absolute;inset:0;background:#fff;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px">
+    <i class="fa-solid fa-spinner fa-spin" style="font-size:24px;color:#3b82f6"></i>
+    <div style="font-size:13px;color:#64748b;font-weight:600">Checking session...</div>
+  </div>
+</div>
+
+<script type="module">
+import { Client, Account } from "https://cdn.jsdelivr.net/npm/appwrite@14.0.1/+esm";
+import APPWRITE_CONFIG from "./appwrite-config.js";
+
+const client = new Client()
+  .setEndpoint(APPWRITE_CONFIG.endpoint)
+  .setProject(APPWRITE_CONFIG.projectId);
+const account = new Account(client);
+
+// --- AUTH GUARD ---
+async function checkAuth(){
+  try{
+    const user = await account.get();
+    // user mil gaya
+    document.getElementById('authLoading').style.display='none';
+    const name = user.name || user.email || 'Guest';
+    const email = user.email || (user.$id.startsWith('guest') || user.name==='' ? 'Guest ID: '+user.$id.slice(0,8) : 'Anonymous');
+    const isGuest = !user.email;
+    document.getElementById('profileName').innerText = isGuest ? 'Guest User' : name;
+    document.getElementById('profileEmail').innerText = isGuest ? 'Guest Session - View Only' : email;
+    document.getElementById('profileAvatar').innerText = name.charAt(0).toUpperCase();
+    localStorage.setItem('appwrite_user', JSON.stringify(user));
+  }catch(err){
+    // No session -> redirect to login
+    window.location.href = 'index.html';
+  }
+}
+checkAuth();
+
+window.logoutUser = async function(){
+  if(!confirm('Logout karna hai?')) return;
+  try{ await account.deleteSession('current'); }catch(e){}
+  localStorage.clear();
+  window.location.href='data:text/html;base64,PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9ImVuIj4KPGhlYWQ+CjxtZXRhIGNoYXJzZXQ9IlVURi04Ij4KPG1ldGEgbmFtZT0idmlld3BvcnQiIGNvbnRlbnQ9IndpZHRoPWRldmljZS13aWR0aCwgaW5pdGlhbC1zY2FsZT0xLjAsIG1heGltdW0tc2NhbGU9MS4wLCB1c2VyLXNjYWxhYmxlPW5vIj4KPHRpdGxlPkFxb2Z5IC0gQXV0aDwvdGl0bGU+CjxsaW5rIHJlbD0ic3R5bGVzaGVldCIgaHJlZj0iaHR0cHM6Ly9jZG5qcy5jbG91ZGZsYXJlLmNvbS9hamF4L2xpYnMvZm9udC1hd2Vzb21lLzYuNC4wL2Nzcy9hbGwubWluLmNzcyI+CjxzdHlsZT4KKnttYXJnaW46MDtwYWRkaW5nOjA7Ym94LXNpemluZzpib3JkZXItYm94O2ZvbnQtZmFtaWx5Oi1hcHBsZS1zeXN0ZW0sQmxpbmtNYWNTeXN0ZW1Gb250LCdTZWdvZSBVSScsUm9ib3RvLEhlbHZldGljYSxBcmlhbCxzYW5zLXNlcmlmfQpib2R5e2JhY2tncm91bmQ6I2VlZjJmNTttaW4taGVpZ2h0OjEwMHZoO21pbi1oZWlnaHQ6MTAwZHZoO2Rpc3BsYXk6ZmxleDtqdXN0aWZ5LWNvbnRlbnQ6Y2VudGVyO2FsaWduLWl0ZW1zOmNlbnRlcjtwYWRkaW5nOjIwcHg7Y29sb3I6IzMzM30KLmF1dGgtd3JhcHBlcnt3aWR0aDoxMDAlO21heC13aWR0aDo0MDBweH0KLmJyYW5kLXRvcHt0ZXh0LWFsaWduOmNlbnRlcjttYXJnaW4tYm90dG9tOjI0cHh9Ci5hcW9meS1sb2dve3dpZHRoOjY0cHg7aGVpZ2h0OjY0cHg7cG9zaXRpb246cmVsYXRpdmU7ZGlzcGxheTpncmlkO3BsYWNlLWl0ZW1zOmNlbnRlcjtib3JkZXItcmFkaXVzOjE4cHg7YmFja2dyb3VuZDpsaW5lYXItZ3JhZGllbnQoMTM1ZGVnLCMzYjgyZjYgMCUsIzYzNjZmMSA0NSUsIzhiNWNmNiAxMDAlKTtib3gtc2hhZG93OjAgOHB4IDI0cHggcmdiYSg5OSwxMDIsMjQxLDAuMzUpO2FuaW1hdGlvbjpsb2dvRmxvYXQgM3MgZWFzZS1pbi1vdXQgaW5maW5pdGV9Ci5sb2dvLWxldHRlcntmb250LXNpemU6MjhweDtmb250LXdlaWdodDo5MDA7Y29sb3I6I2ZmZjtsZXR0ZXItc3BhY2luZzotMS41cHg7cG9zaXRpb246cmVsYXRpdmU7ei1pbmRleDoxfQpAa2V5ZnJhbWVzIGxvZ29GbG9hdHswJSwxMDAle3RyYW5zZm9ybTp0cmFuc2xhdGVZKDApfTUwJXt0cmFuc2Zvcm06dHJhbnNsYXRlWSgtM3B4KX19Ci5mbG93aW5nLWxvZ297Zm9udC1zaXplOjI4cHg7Zm9udC13ZWlnaHQ6OTAwO2xldHRlci1zcGFjaW5nOi0wLjA0ZW07YmFja2dyb3VuZDpsaW5lYXItZ3JhZGllbnQoOTBkZWcsIzNiODJmNiwjNjM2NmYxLCM4YjVjZjYsI2VjNDg5OSwjZjU5ZTBiLCMxMGI5ODEsIzNiODJmNik7YmFja2dyb3VuZC1zaXplOjQwMCUgMTAwJTstd2Via2l0LWJhY2tncm91bmQtY2xpcDp0ZXh0O2JhY2tncm91bmQtY2xpcDp0ZXh0Oy13ZWJraXQtdGV4dC1maWxsLWNvbG9yOnRyYW5zcGFyZW50O2FuaW1hdGlvbjphcW9meUZsb3cgNjBzIGxpbmVhciBpbmZpbml0ZTtkaXNwbGF5OmlubGluZS1ibG9ja30KQGtleWZyYW1lcyBhcW9meUZsb3d7MCV7YmFja2dyb3VuZC1wb3NpdGlvbjowJSA1MCV9MTAwJXtiYWNrZ3JvdW5kLXBvc2l0aW9uOjEwMCUgNTAlfX0KLmF1dGgtY2FyZHtiYWNrZ3JvdW5kOiNmZmY7d2lkdGg6MTAwJTtwYWRkaW5nOjI4cHggMjZweDtib3JkZXItcmFkaXVzOjEycHg7Ym94LXNoYWRvdzowIDRweCAxNXB4IHJnYmEoMCwwLDAsMC4wOCk7YW5pbWF0aW9uOmxvZ2luUG9wIDAuNHMgZWFzZX0KQGtleWZyYW1lcyBsb2dpblBvcHswJXtvcGFjaXR5OjA7dHJhbnNmb3JtOnRyYW5zbGF0ZVkoMTBweCkgc2NhbGUoMC45Nyl9MTAwJXtvcGFjaXR5OjE7dHJhbnNmb3JtOnRyYW5zbGF0ZVkoMCkgc2NhbGUoMSl9fQoudGFic3tkaXNwbGF5OmZsZXg7Z2FwOjZweDtiYWNrZ3JvdW5kOiNlZWYyZjU7cGFkZGluZzo0cHg7Ym9yZGVyLXJhZGl1czo4cHg7bWFyZ2luLWJvdHRvbToyMnB4fQoudGFiLWJ0bntmbGV4OjE7cGFkZGluZzoxMHB4O2JvcmRlcjpub25lO2JvcmRlci1yYWRpdXM6NnB4O2JhY2tncm91bmQ6dHJhbnNwYXJlbnQ7Zm9udC13ZWlnaHQ6NzAwO2ZvbnQtc2l6ZToxM3B4O2NvbG9yOiM2NjY7Y3Vyc29yOnBvaW50ZXI7dHJhbnNpdGlvbjphbGwgLjJzfQoudGFiLWJ0bi5hY3RpdmV7YmFja2dyb3VuZDojZmZmO2NvbG9yOiMzYjgyZjY7Ym94LXNoYWRvdzowIDJweCA4cHggcmdiYSgwLDAsMCwwLjA4KX0KLmF1dGgtdGl0bGV7Zm9udC1zaXplOjIycHg7Zm9udC13ZWlnaHQ6ODAwO2NvbG9yOiMzMzM7bWFyZ2luLWJvdHRvbTo2cHg7dGV4dC1hbGlnbjpjZW50ZXJ9Ci5hdXRoLXN1Yntjb2xvcjojNjY2O2ZvbnQtc2l6ZToxM3B4O21hcmdpbi1ib3R0b206MjJweDt0ZXh0LWFsaWduOmNlbnRlcjtsaW5lLWhlaWdodDoxLjV9Ci5pbnB1dC1ncm91cHttYXJnaW4tYm90dG9tOjE0cHg7dGV4dC1hbGlnbjpsZWZ0fQouaW5wdXQtZ3JvdXAgbGFiZWx7ZGlzcGxheTpibG9jaztmb250LXNpemU6MTFweDtjb2xvcjojNTU1O21hcmdpbi1ib3R0b206NXB4O2ZvbnQtd2VpZ2h0OjcwMDtsZXR0ZXItc3BhY2luZzowLjVweH0KLmlucHV0LWdyb3VwIGlucHV0e3dpZHRoOjEwMCU7cGFkZGluZzoxMnB4IDEycHg7Ym9yZGVyOjEuNXB4IHNvbGlkICNkZGQ7Ym9yZGVyLXJhZGl1czo4cHg7b3V0bGluZTpub25lO2ZvbnQtc2l6ZToxNHB4O3RyYW5zaXRpb246LjJzO2JhY2tncm91bmQ6I2ZmZn0KLmlucHV0LWdyb3VwIGlucHV0OmZvY3Vze2JvcmRlci1jb2xvcjojM2I4MmY2O2JveC1zaGFkb3c6MCAwIDAgM3B4IHJnYmEoNTksMTMwLDI0NiwwLjEyKX0KLnBhc3Mtd3JhcHtwb3NpdGlvbjpyZWxhdGl2ZTtkaXNwbGF5OmZsZXg7YWxpZ24taXRlbXM6Y2VudGVyfQoucGFzcy13cmFwIGlucHV0e3BhZGRpbmctcmlnaHQ6NDRweDtmbGV4OjF9Ci5leWUtYnRue3Bvc2l0aW9uOmFic29sdXRlO3JpZ2h0OjRweDt0b3A6NTAlO3RyYW5zZm9ybTp0cmFuc2xhdGVZKC01MCUpO3dpZHRoOjM2cHg7aGVpZ2h0OjM2cHg7Ym9yZGVyOm5vbmU7YmFja2dyb3VuZDp0cmFuc3BhcmVudDtkaXNwbGF5OmdyaWQ7cGxhY2UtaXRlbXM6Y2VudGVyO2N1cnNvcjpwb2ludGVyO2JvcmRlci1yYWRpdXM6NnB4O2NvbG9yOiM5Y2EzYWZ9Ci5leWUtYnRuOmhvdmVye2NvbG9yOiM0YjU1NjM7YmFja2dyb3VuZDojZjNmNGY2fQouaGludHtmb250LXNpemU6MTFweDtjb2xvcjojNjQ3NDhiO21hcmdpbi10b3A6NHB4O2xpbmUtaGVpZ2h0OjEuNH0KLmhpbnQuZXJyb3J7Y29sb3I6I2VmNDQ0NH0KLmhpbnQub2t7Y29sb3I6IzE2YTM0YX0KLmF1dGgtYnRue3dpZHRoOjEwMCU7cGFkZGluZzoxMnB4O2JhY2tncm91bmQ6bGluZWFyLWdyYWRpZW50KDkwZGVnLCMzYjgyZjYsIzYzNjZmMSk7Y29sb3I6I2ZmZjtib3JkZXI6bm9uZTtib3JkZXItcmFkaXVzOjhweDtmb250LXdlaWdodDo4MDA7Zm9udC1zaXplOjE0cHg7Y3Vyc29yOnBvaW50ZXI7dHJhbnNpdGlvbjphbGwgLjJzO2JveC1zaGFkb3c6MCA0cHggMTJweCByZ2JhKDU5LDEzMCwyNDYsMC4zKTttYXJnaW4tdG9wOjRweH0KLmF1dGgtYnRuOmRpc2FibGVke29wYWNpdHk6MC42O2N1cnNvcjpub3QtYWxsb3dlZDt0cmFuc2Zvcm06bm9uZX0KLmRpdmlkZXJ7ZGlzcGxheTpmbGV4O2FsaWduLWl0ZW1zOmNlbnRlcjtnYXA6MTJweDttYXJnaW46MjBweCAwO2NvbG9yOiM5OTk7Zm9udC1zaXplOjExcHg7Zm9udC13ZWlnaHQ6NzAwO2xldHRlci1zcGFjaW5nOjAuNXB4fQouZGl2aWRlciBzcGFue2ZsZXg6MTtoZWlnaHQ6MXB4O2JhY2tncm91bmQ6I2U1ZTdlYn0KLmd1ZXN0LWJ0bnt3aWR0aDoxMDAlO3BhZGRpbmc6MTFweDtiYWNrZ3JvdW5kOiNmZmY7Ym9yZGVyOjEuNXB4IGRhc2hlZCAjOTRhM2I4O2JvcmRlci1yYWRpdXM6OHB4O2ZvbnQtd2VpZ2h0OjcwMDtmb250LXNpemU6MTNweDtjb2xvcjojNDc1NTY5O2N1cnNvcjpwb2ludGVyO3RyYW5zaXRpb246LjJzfQouZ3Vlc3QtYnRuOmhvdmVye2JvcmRlci1jb2xvcjojM2I4MmY2O2NvbG9yOiMzYjgyZjY7YmFja2dyb3VuZDojZWZmNmZmfQouZXJyb3ItbXNne2Rpc3BsYXk6bm9uZTttYXJnaW4tdG9wOjEycHg7Y29sb3I6I2VmNDQ0NDtiYWNrZ3JvdW5kOiNmZWYyZjI7Ym9yZGVyOjFweCBzb2xpZCAjZmVjYWNhO3BhZGRpbmc6OXB4IDEwcHg7Ym9yZGVyLXJhZGl1czo4cHg7Zm9udC1zaXplOjEycHg7Zm9udC13ZWlnaHQ6NjAwfQouc3VjY2Vzcy1tc2d7ZGlzcGxheTpub25lO21hcmdpbi10b3A6MTJweDtjb2xvcjojMTZhMzRhO2JhY2tncm91bmQ6I2YwZmRmNDtib3JkZXI6MXB4IHNvbGlkICNiYmY3ZDA7cGFkZGluZzo5cHggMTBweDtib3JkZXItcmFkaXVzOjhweDtmb250LXNpemU6MTJweDtmb250LXdlaWdodDo2MDB9Ci5mb290ZXItdGV4dHt0ZXh0LWFsaWduOmNlbnRlcjttYXJnaW4tdG9wOjE4cHg7Zm9udC1zaXplOjEycHg7Y29sb3I6IzZiNzI4MH0KLmZvb3Rlci10ZXh0IGF7Y29sb3I6IzNiODJmNjtmb250LXdlaWdodDo3MDA7dGV4dC1kZWNvcmF0aW9uOm5vbmU7Y3Vyc29yOnBvaW50ZXJ9Ci5oaWRkZW57ZGlzcGxheTpub25lICFpbXBvcnRhbnR9Cjwvc3R5bGU+CjwvaGVhZD4KPGJvZHk+CjxkaXYgY2xhc3M9ImF1dGgtd3JhcHBlciI+CiAgPGRpdiBjbGFzcz0iYnJhbmQtdG9wIj4KICAgIDxkaXYgY2xhc3M9ImxvZ28td3JhcCIgc3R5bGU9ImRpc3BsYXk6ZmxleDtmbGV4LWRpcmVjdGlvbjpjb2x1bW47YWxpZ24taXRlbXM6Y2VudGVyO2dhcDoxMnB4Ij4KICAgICAgPGRpdiBjbGFzcz0iYXFvZnktbG9nbyI+PHNwYW4gY2xhc3M9ImxvZ28tbGV0dGVyIj5BPC9zcGFuPjwvZGl2PgogICAgICA8ZGl2IGNsYXNzPSJmbG93aW5nLWxvZ28iPkFxb2Z5PC9kaXY+CiAgICA8L2Rpdj4KICA8L2Rpdj4KCiAgPGRpdiBjbGFzcz0iYXV0aC1jYXJkIj4KICAgIDxkaXYgY2xhc3M9InRhYnMiPgogICAgICA8YnV0dG9uIGlkPSJsb2dpblRhYkJ0biIgY2xhc3M9InRhYi1idG4gYWN0aXZlIiBvbmNsaWNrPSJzd2l0Y2hNb2RlKCdsb2dpbicpIj48aSBjbGFzcz0iZmEtc29saWQgZmEtcmlnaHQtdG8tYnJhY2tldCI+PC9pPiBMb2dpbjwvYnV0dG9uPgogICAgICA8YnV0dG9uIGlkPSJzaWdudXBUYWJCdG4iIGNsYXNzPSJ0YWItYnRuIiBvbmNsaWNrPSJzd2l0Y2hNb2RlKCdzaWdudXAnKSI+PGkgY2xhc3M9ImZhLXNvbGlkIGZhLXVzZXItcGx1cyI+PC9pPiBTaWduIFVwPC9idXR0b24+CiAgICA8L2Rpdj4KCiAgICA8aDIgaWQ9InRpdGxlIiBjbGFzcz0iYXV0aC10aXRsZSI+V2VsY29tZSBCYWNrPC9oMj4KICAgIDxwIGlkPSJzdWJ0aXRsZSIgY2xhc3M9ImF1dGgtc3ViIj5QbGVhc2UgbG9naW4gdG8gY29udGludWU8L3A+CgogICAgPGZvcm0gaWQ9ImF1dGhGb3JtIiBvbnN1Ym1pdD0iaGFuZGxlQXV0aChldmVudCkiPgogICAgICA8ZGl2IGlkPSJuYW1lR3JvdXAiIGNsYXNzPSJpbnB1dC1ncm91cCBoaWRkZW4iPgogICAgICAgIDxsYWJlbD5GVUxMIE5BTUU8L2xhYmVsPgogICAgICAgIDxpbnB1dCBpZD0iZnVsbE5hbWUiIHR5cGU9InRleHQiIHBsYWNlaG9sZGVyPSJZb3VyIG5hbWUiPgogICAgICA8L2Rpdj4KCiAgICAgIDxkaXYgY2xhc3M9ImlucHV0LWdyb3VwIj4KICAgICAgICA8bGFiZWw+RU1BSUw8L2xhYmVsPgogICAgICAgIDxpbnB1dCBpZD0iZW1haWwiIHR5cGU9ImVtYWlsIiBwbGFjZWhvbGRlcj0ieW91QGV4YW1wbGUuY29tIiByZXF1aXJlZD4KICAgICAgPC9kaXY+CgogICAgICA8ZGl2IGNsYXNzPSJpbnB1dC1ncm91cCI+CiAgICAgICAgPGxhYmVsPlBBU1NXT1JEIDxzcGFuIHN0eWxlPSJmb250LXdlaWdodDo0MDA7Y29sb3I6Izk0YTNiODtmb250LXNpemU6MTBweCI+KG1pbiA4IGNoYXJzICsgQCArIHNwZWNpYWwpPC9zcGFuPjwvbGFiZWw+CiAgICAgICAgPGRpdiBjbGFzcz0icGFzcy13cmFwIj4KICAgICAgICAgIDxpbnB1dCBpZD0icGFzc3dvcmQiIHR5cGU9InBhc3N3b3JkIiBwbGFjZWhvbGRlcj0i4oCi4oCi4oCi4oCi4oCi4oCi4oCi4oCiIiByZXF1aXJlZCBvbmlucHV0PSJ2YWxpZGF0ZVBhc3NMaXZlKHRoaXMudmFsdWUpIj4KICAgICAgICAgIDxidXR0b24gdHlwZT0iYnV0dG9uIiBjbGFzcz0iZXllLWJ0biIgb25jbGljaz0idG9nZ2xlUGFzcygncGFzc3dvcmQnLCB0aGlzKSI+PGkgY2xhc3M9ImZhLXJlZ3VsYXIgZmEtZXllIj48L2k+PC9idXR0b24+CiAgICAgICAgPC9kaXY+CiAgICAgICAgPGRpdiBpZD0icGFzc0hpbnQiIGNsYXNzPSJoaW50Ij5QYXNzd29yZCBtZSBrYW0gc2Uga2FtIDggY2hhcmFjdGVycywgMSBAIGF1ciAxIHNwZWNpYWwgY2hhciAoISAjICQgJSBldGMpIGxhem1pIGhhaTwvZGl2PgogICAgICA8L2Rpdj4KCiAgICAgIDxkaXYgaWQ9ImNvbmZpcm1Hcm91cCIgY2xhc3M9ImlucHV0LWdyb3VwIGhpZGRlbiI+CiAgICAgICAgPGxhYmVsPkNPTkZJUk0gUEFTU1dPUkQ8L2xhYmVsPgogICAgICAgIDxkaXYgY2xhc3M9InBhc3Mtd3JhcCI+CiAgICAgICAgICA8aW5wdXQgaWQ9ImNvbmZpcm1QYXNzd29yZCIgdHlwZT0icGFzc3dvcmQiIHBsYWNlaG9sZGVyPSJSZXBlYXQgcGFzc3dvcmQiPgogICAgICAgICAgPGJ1dHRvbiB0eXBlPSJidXR0b24iIGNsYXNzPSJleWUtYnRuIiBvbmNsaWNrPSJ0b2dnbGVQYXNzKCdjb25maXJtUGFzc3dvcmQnLCB0aGlzKSI+PGkgY2xhc3M9ImZhLXJlZ3VsYXIgZmEtZXllIj48L2k+PC9idXR0b24+CiAgICAgICAgPC9kaXY+CiAgICAgIDwvZGl2PgoKICAgICAgPGRpdiBpZD0ibG9naW5PcHRpb25zIiBjbGFzcz0icm93IiBzdHlsZT0iZGlzcGxheTpmbGV4O2p1c3RpZnktY29udGVudDpzcGFjZS1iZXR3ZWVuO2FsaWduLWl0ZW1zOmNlbnRlcjttYXJnaW46MTBweCAwIDE4cHgiPgogICAgICAgIDxsYWJlbCBzdHlsZT0iZGlzcGxheTpmbGV4O2FsaWduLWl0ZW1zOmNlbnRlcjtnYXA6NnB4O2ZvbnQtc2l6ZToxMnB4O2NvbG9yOiM1NTU7Zm9udC13ZWlnaHQ6NjAwO2N1cnNvcjpwb2ludGVyIj48aW5wdXQgdHlwZT0iY2hlY2tib3giIHN0eWxlPSJhY2NlbnQtY29sb3I6IzNiODJmNiI+IFJlbWVtYmVyPC9sYWJlbD4KICAgICAgICA8c3BhbiBzdHlsZT0iZm9udC1zaXplOjEycHg7Y29sb3I6IzNiODJmNjtmb250LXdlaWdodDo3MDA7Y3Vyc29yOnBvaW50ZXIiIG9uY2xpY2s9ImFsZXJ0KCdBcHB3cml0ZSBwZSBlbWFpbCByZWNvdmVyeSBlbmFibGUga2FyZW4gdG8geWFoYW4gcmVjb3ZlcnkgZW1haWwgamF5ZWdpJykiPkZvcmdvdD88L3NwYW4+CiAgICAgIDwvZGl2PgoKICAgICAgPGJ1dHRvbiBpZD0ic3VibWl0QnRuIiB0eXBlPSJzdWJtaXQiIGNsYXNzPSJhdXRoLWJ0biI+PGkgY2xhc3M9ImZhLXNvbGlkIGZhLXJpZ2h0LXRvLWJyYWNrZXQiIHN0eWxlPSJtYXJnaW4tcmlnaHQ6NnB4Ij48L2k+IExPR0lOPC9idXR0b24+CiAgICA8L2Zvcm0+CgogICAgPGRpdiBjbGFzcz0iZGl2aWRlciI+PHNwYW4+PC9zcGFuPiBPUiA8c3Bhbj48L3NwYW4+PC9kaXY+CiAgICA8YnV0dG9uIGNsYXNzPSJndWVzdC1idG4iIG9uY2xpY2s9Imd1ZXN0TG9naW4oKSI+PGkgY2xhc3M9ImZhLXNvbGlkIGZhLXVzZXItc2VjcmV0IiBzdHlsZT0ibWFyZ2luLXJpZ2h0OjZweCI+PC9pPiBDb250aW51ZSBhcyBHdWVzdDwvYnV0dG9uPgoKICAgIDxkaXYgaWQ9ImVycm9yQm94IiBjbGFzcz0iZXJyb3ItbXNnIj48L2Rpdj4KICAgIDxkaXYgaWQ9InN1Y2Nlc3NCb3giIGNsYXNzPSJzdWNjZXNzLW1zZyI+PC9kaXY+CgogICAgPGRpdiBjbGFzcz0iZm9vdGVyLXRleHQiPjxzcGFuIGlkPSJzd2l0Y2hUZXh0Ij5Eb24ndCBoYXZlIGFuIGFjY291bnQ/IDxhIG9uY2xpY2s9InN3aXRjaE1vZGUoJ3NpZ251cCcpIj5DcmVhdGUgb25lPC9hPjwvc3Bhbj48L2Rpdj4KICA8L2Rpdj4KPC9kaXY+Cgo8c2NyaXB0IHR5cGU9Im1vZHVsZSI+CmltcG9ydCB7IENsaWVudCwgQWNjb3VudCwgSUQgfSBmcm9tICJodHRwczovL2Nkbi5qc2RlbGl2ci5uZXQvbnBtL2FwcHdyaXRlQDE0LjAuMS8rZXNtIjsKaW1wb3J0IEFQUFdSSVRFX0NPTkZJRyBmcm9tICIuL2FwcHdyaXRlLWNvbmZpZy5qcyI7Cgpjb25zdCBjbGllbnQgPSBuZXcgQ2xpZW50KCkKICAuc2V0RW5kcG9pbnQoQVBQV1JJVEVfQ09ORklHLmVuZHBvaW50KQogIC5zZXRQcm9qZWN0KEFQUFdSSVRFX0NPTkZJRy5wcm9qZWN0SWQpOwoKY29uc3QgYWNjb3VudCA9IG5ldyBBY2NvdW50KGNsaWVudCk7Cgp3aW5kb3cuYWNjb3VudCA9IGFjY291bnQ7CndpbmRvdy5JRCA9IElEOwoKLy8gQ2hlY2sgYWxyZWFkeSBsb2dnZWQgaW4/CnRyeSB7CiAgY29uc3QgdXNlciA9IGF3YWl0IGFjY291bnQuZ2V0KCk7CiAgaWYodXNlcil7CiAgICB3aW5kb3cubG9jYXRpb24uaHJlZiA9ICJtYWluLmh0bWwiOwogIH0KfSBjYXRjaChlKXsgLyogbm90IGxvZ2dlZCAqLyB9CgpsZXQgbW9kZSA9ICdsb2dpbic7Cgp3aW5kb3cudG9nZ2xlUGFzcyA9IGZ1bmN0aW9uKGlucHV0SWQsIGJ0bil7CiAgY29uc3QgaW5wdXQgPSBkb2N1bWVudC5nZXRFbGVtZW50QnlJZChpbnB1dElkKTsKICBjb25zdCBpY29uID0gYnRuLnF1ZXJ5U2VsZWN0b3IoJ2knKTsKICBpZihpbnB1dC50eXBlPT09J3Bhc3N3b3JkJyl7CiAgICBpbnB1dC50eXBlPSd0ZXh0JzsKICAgIGljb24uY2xhc3NOYW1lPSdmYS1yZWd1bGFyIGZhLWV5ZS1zbGFzaCc7CiAgICBidG4uc3R5bGUuY29sb3I9JyMzYjgyZjYnOwogIH0gZWxzZSB7CiAgICBpbnB1dC50eXBlPSdwYXNzd29yZCc7CiAgICBpY29uLmNsYXNzTmFtZT0nZmEtcmVndWxhciBmYS1leWUnOwogICAgYnRuLnN0eWxlLmNvbG9yPScjOWNhM2FmJzsKICB9Cn0KCndpbmRvdy52YWxpZGF0ZVBhc3NMaXZlID0gZnVuY3Rpb24odmFsKXsKICBjb25zdCBoaW50ID0gZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ3Bhc3NIaW50Jyk7CiAgY29uc3QgaGFzTWluID0gdmFsLmxlbmd0aCA+PSA4OwogIGNvbnN0IGhhc0F0ID0gdmFsLmluY2x1ZGVzKCdAJyk7CiAgY29uc3QgaGFzU3BlY2lhbCA9IC9bIUAjJCVeJiooKV8rXC09XFtcXXt9Oyc6IlxcfCwuPD5cLz9dLy50ZXN0KHZhbCkgJiYgL1tAXS8udGVzdCh2YWwpID8gdHJ1ZSA6IC9bISMkJV4mKigpXytcLT1cW1xde307JzoiXFx8LC48PlwvP0BdLy50ZXN0KHZhbCkgJiYgdmFsLmluY2x1ZGVzKCdAJyk7IAogIC8vIHNpbXBsZSBydWxlOiBtdXN0IGNvbnRhaW4gQCBhbmQgbGVuZ3RoID49OCBhbmQgYXQgbGVhc3Qgb25lIHNwZWNpYWwgZnJvbSBsaXN0IGluY2x1ZGluZyBACiAgY29uc3Qgc3BlY2lhbFJlZ2V4ID0gL1shQCMkJV4mKigpXytcLT1cW1xde307JzoiXFx8LC48PlwvP10vOwogIGNvbnN0IG9rID0gaGFzTWluICYmIGhhc0F0ICYmIHNwZWNpYWxSZWdleC50ZXN0KHZhbCk7CiAgaWYodmFsLmxlbmd0aD09PTApewogICAgaGludC50ZXh0Q29udGVudCA9ICJQYXNzd29yZCBtZSBrYW0gc2Uga2FtIDggY2hhcmFjdGVycywgMSBAIGF1ciAxIHNwZWNpYWwgY2hhciAoISAjICQgJSBldGMpIGxhem1pIGhhaSI7CiAgICBoaW50LmNsYXNzTmFtZT0iaGludCI7CiAgfSBlbHNlIGlmKCFvayl7CiAgICBoaW50LnRleHRDb250ZW50ID0gKCFoYXNNaW4gPyAi4oCiIDggY2hhcnMgbWluaW11bSAiIDogIiIpICsgKCFoYXNBdCA/ICLigKIgQCByZXF1aXJlZCAiIDogIiIpICsgKCFzcGVjaWFsUmVnZXgudGVzdCh2YWwpID8gIuKAoiBzcGVjaWFsIGNoYXIgcmVxdWlyZWQiIDogIiIpOwogICAgaGludC5jbGFzc05hbWU9ImhpbnQgZXJyb3IiOwogIH0gZWxzZSB7CiAgICBoaW50LnRleHRDb250ZW50ID0gIuKckyBTdHJvbmcgcGFzc3dvcmQiOwogICAgaGludC5jbGFzc05hbWU9ImhpbnQgb2siOwogIH0KICByZXR1cm4gb2s7Cn0KCmZ1bmN0aW9uIGlzUGFzc3dvcmRWYWxpZChwKXsKICBpZihwLmxlbmd0aCA8IDgpIHJldHVybiB7b2s6ZmFsc2UsIG1zZzoiUGFzc3dvcmQgbWluaW11bSA4IGNoYXJhY3RlcnMga2EgaG9uYSBjaGFoaXllIn07CiAgaWYoIXAuaW5jbHVkZXMoJ0AnKSkgcmV0dXJuIHtvazpmYWxzZSwgbXNnOiJQYXNzd29yZCBtZSBAIGxhem1pIGhhaSJ9OwogIGNvbnN0IHNwZWNpYWxSZWdleCA9IC9bIUAjJCVeJiooKV8rXC09XFtcXXt9Oyc6IlxcfCwuPD5cLz9dLzsKICBpZighc3BlY2lhbFJlZ2V4LnRlc3QocCkpIHJldHVybiB7b2s6ZmFsc2UsIG1zZzoiUGFzc3dvcmQgbWUga2FtIHNlIGthbSAxIHNwZWNpYWwgY2hhcmFjdGVyIChAICEgIyAkIGV0YykgbGF6bWkgaGFpIn07CiAgcmV0dXJuIHtvazp0cnVlfTsKfQoKd2luZG93LnN3aXRjaE1vZGUgPSBmdW5jdGlvbihuZXdNb2RlKXsKICBtb2RlPW5ld01vZGU7CiAgY29uc3QgaXNTaWdudXAgPSBtb2RlPT09J3NpZ251cCc7CiAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2xvZ2luVGFiQnRuJykuY2xhc3NMaXN0LnRvZ2dsZSgnYWN0aXZlJywhaXNTaWdudXApOwogIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdzaWdudXBUYWJCdG4nKS5jbGFzc0xpc3QudG9nZ2xlKCdhY3RpdmUnLGlzU2lnbnVwKTsKICBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnbmFtZUdyb3VwJykuY2xhc3NMaXN0LnRvZ2dsZSgnaGlkZGVuJywhaXNTaWdudXApOwogIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdjb25maXJtR3JvdXAnKS5jbGFzc0xpc3QudG9nZ2xlKCdoaWRkZW4nLCFpc1NpZ251cCk7CiAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2xvZ2luT3B0aW9ucycpLnN0eWxlLmRpc3BsYXkgPSBpc1NpZ251cCA/ICdub25lJyA6ICdmbGV4JzsKICBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnZnVsbE5hbWUnKS5yZXF1aXJlZD1pc1NpZ251cDsKICBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnY29uZmlybVBhc3N3b3JkJykucmVxdWlyZWQ9aXNTaWdudXA7CiAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ3RpdGxlJykuaW5uZXJUZXh0PWlzU2lnbnVwPydDcmVhdGUgQWNjb3VudCc6J1dlbGNvbWUgQmFjayc7CiAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ3N1YnRpdGxlJykuaW5uZXJUZXh0PWlzU2lnbnVwPydDcmVhdGUgeW91ciBBcW9meSBhY2NvdW50JzonUGxlYXNlIGxvZ2luIHRvIGNvbnRpbnVlJzsKICBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnc3VibWl0QnRuJykuaW5uZXJIVE1MPWlzU2lnbnVwPyc8aSBjbGFzcz0iZmEtc29saWQgZmEtdXNlci1wbHVzIiBzdHlsZT0ibWFyZ2luLXJpZ2h0OjZweCI+PC9pPiBDUkVBVEUgQUNDT1VOVCc6JzxpIGNsYXNzPSJmYS1zb2xpZCBmYS1yaWdodC10by1icmFja2V0IiBzdHlsZT0ibWFyZ2luLXJpZ2h0OjZweCI+PC9pPiBMT0dJTic7CiAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ3N3aXRjaFRleHQnKS5pbm5lckhUTUw9aXNTaWdudXA/J0FscmVhZHkgaGF2ZSBhbiBhY2NvdW50PyA8YSBvbmNsaWNrPSJzd2l0Y2hNb2RlKFwnbG9naW5cJykiPkxvZ2luPC9hPic6J0RvblwndCBoYXZlIGFuIGFjY291bnQ/IDxhIG9uY2xpY2s9InN3aXRjaE1vZGUoXCdzaWdudXBcJykiPkNyZWF0ZSBvbmU8L2E+JzsKICBoaWRlTXNnKCk7Cn0KCmZ1bmN0aW9uIHNob3dNc2codCx0eXBlKXsKICBjb25zdCBlPWRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdlcnJvckJveCcpLHM9ZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ3N1Y2Nlc3NCb3gnKTsKICBoaWRlTXNnKCk7CiAgaWYodHlwZT09PSdzdWNjZXNzJyl7cy5zdHlsZS5kaXNwbGF5PSdibG9jayc7cy5pbm5lclRleHQ9dH0KICBlbHNle2Uuc3R5bGUuZGlzcGxheT0nYmxvY2snO2UuaW5uZXJUZXh0PXR9Cn0KZnVuY3Rpb24gaGlkZU1zZygpewogIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdlcnJvckJveCcpLnN0eWxlLmRpc3BsYXk9J25vbmUnOwogIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdzdWNjZXNzQm94Jykuc3R5bGUuZGlzcGxheT0nbm9uZSc7Cn0KCndpbmRvdy5oYW5kbGVBdXRoID0gYXN5bmMgZnVuY3Rpb24oZSl7CiAgZS5wcmV2ZW50RGVmYXVsdCgpOwogIGhpZGVNc2coKTsKICBjb25zdCBlbWFpbCA9IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdlbWFpbCcpLnZhbHVlLnRyaW0oKTsKICBjb25zdCBwYXNzID0gZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ3Bhc3N3b3JkJykudmFsdWUudHJpbSgpOwogIGNvbnN0IG5hbWUgPSBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnZnVsbE5hbWUnKS52YWx1ZS50cmltKCk7CiAgY29uc3QgY29uZmlybSA9IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdjb25maXJtUGFzc3dvcmQnKS52YWx1ZS50cmltKCk7CiAgY29uc3QgYnRuID0gZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ3N1Ym1pdEJ0bicpOwoKICBpZighZW1haWwgfHwgIXBhc3MpeyBzaG93TXNnKCdQbGVhc2UgZmlsbCBhbGwgcmVxdWlyZWQgZmllbGRzJywnZXJyb3InKTsgcmV0dXJuOyB9CgogIGNvbnN0IHYgPSBpc1Bhc3N3b3JkVmFsaWQocGFzcyk7CiAgaWYoIXYub2speyBzaG93TXNnKHYubXNnLCdlcnJvcicpOyByZXR1cm47IH0KCiAgaWYobW9kZT09PSdzaWdudXAnKXsKICAgIGlmKCFuYW1lKXsgc2hvd01zZygnUGxlYXNlIGVudGVyIGZ1bGwgbmFtZScsJ2Vycm9yJyk7IHJldHVybjsgfQogICAgaWYocGFzcyE9PWNvbmZpcm0peyBzaG93TXNnKCdQYXNzd29yZHMgZG8gbm90IG1hdGNoJywnZXJyb3InKTsgcmV0dXJuOyB9CiAgfQoKICBidG4uZGlzYWJsZWQgPSB0cnVlOwogIGNvbnN0IG9yaWdpbmFsVGV4dCA9IGJ0bi5pbm5lckhUTUw7CiAgYnRuLmlubmVySFRNTCA9ICc8aSBjbGFzcz0iZmEtc29saWQgZmEtc3Bpbm5lciBmYS1zcGluIj48L2k+IFBsZWFzZSB3YWl0Li4uJzsKCiAgdHJ5ewogICAgaWYobW9kZT09PSdzaWdudXAnKXsKICAgICAgYXdhaXQgYWNjb3VudC5jcmVhdGUoSUQudW5pcXVlKCksIGVtYWlsLCBwYXNzLCBuYW1lKTsKICAgICAgYXdhaXQgYWNjb3VudC5jcmVhdGVFbWFpbFBhc3N3b3JkU2Vzc2lvbihlbWFpbCwgcGFzcyk7CiAgICAgIHNob3dNc2coJ0FjY291bnQgY3JlYXRlZCEgUmVkaXJlY3RpbmcuLi4nLCdzdWNjZXNzJyk7CiAgICB9IGVsc2UgewogICAgICBhd2FpdCBhY2NvdW50LmNyZWF0ZUVtYWlsUGFzc3dvcmRTZXNzaW9uKGVtYWlsLCBwYXNzKTsKICAgICAgc2hvd01zZygnTG9naW4gc3VjY2Vzc2Z1bCEgUmVkaXJlY3RpbmcuLi4nLCdzdWNjZXNzJyk7CiAgICB9CiAgICBzZXRUaW1lb3V0KCgpPT57IHdpbmRvdy5sb2NhdGlvbi5ocmVmPSJtYWluLmh0bWwiOyB9LCA4MDApOwogIH1jYXRjaChlcnIpewogICAgY29uc29sZS5lcnJvcihlcnIpOwogICAgc2hvd01zZyhlcnIubWVzc2FnZSB8fCAnQXV0aCBmYWlsZWQuIENoZWNrIGVtYWlsL3Bhc3N3b3JkJywnZXJyb3InKTsKICAgIGJ0bi5kaXNhYmxlZD1mYWxzZTsKICAgIGJ0bi5pbm5lckhUTUw9b3JpZ2luYWxUZXh0OwogIH0KfQoKd2luZG93Lmd1ZXN0TG9naW4gPSBhc3luYyBmdW5jdGlvbigpewogIGhpZGVNc2coKTsKICBjb25zdCBidG4gPSBkb2N1bWVudC5xdWVyeVNlbGVjdG9yKCcuZ3Vlc3QtYnRuJyk7CiAgYnRuLmRpc2FibGVkPXRydWU7CiAgYnRuLmlubmVySFRNTD0nPGkgY2xhc3M9ImZhLXNvbGlkIGZhLXNwaW5uZXIgZmEtc3BpbiI+PC9pPiBDcmVhdGluZyBndWVzdC4uLic7CiAgdHJ5ewogICAgYXdhaXQgYWNjb3VudC5jcmVhdGVBbm9ueW1vdXNTZXNzaW9uKCk7CiAgICBzaG93TXNnKCdHdWVzdCBzZXNzaW9uIGNyZWF0ZWQg4oCUIG9wZW5pbmcgbWFpbi4uLicsJ3N1Y2Nlc3MnKTsKICAgIHNldFRpbWVvdXQoKCk9Pnsgd2luZG93LmxvY2F0aW9uLmhyZWY9Im1haW4uaHRtbCI7IH0sIDcwMCk7CiAgfWNhdGNoKGVycil7CiAgICBjb25zb2xlLmVycm9yKGVycik7CiAgICAvLyBJZiBhbm9ueW1vdXMgbm90IGVuYWJsZWQsIHNob3cgaGVscGZ1bCBtZXNzYWdlCiAgICBpZihlcnIubWVzc2FnZS5pbmNsdWRlcygnZGlzYWJsZWQnKSB8fCBlcnIubWVzc2FnZS5pbmNsdWRlcygnbm90IGVuYWJsZWQnKSl7CiAgICAgIHNob3dNc2coJ0d1ZXN0IGxvZ2luIGlzIGRpc2FibGVkIGluIEFwcHdyaXRlIENvbnNvbGUuIFBsZWFzZSBlbmFibGUgQW5vbnltb3VzIGF1dGggaW4gQXV0aCA+IFNldHRpbmdzLicsJ2Vycm9yJyk7CiAgICB9IGVsc2UgewogICAgICBzaG93TXNnKGVyci5tZXNzYWdlLCdlcnJvcicpOwogICAgfQogICAgYnRuLmRpc2FibGVkPWZhbHNlOwogICAgYnRuLmlubmVySFRNTD0nPGkgY2xhc3M9ImZhLXNvbGlkIGZhLXVzZXItc2VjcmV0IiBzdHlsZT0ibWFyZ2luLXJpZ2h0OjZweCI+PC9pPiBDb250aW51ZSBhcyBHdWVzdCc7CiAgfQp9Cjwvc2NyaXB0Pgo8L2JvZHk+CjwvaHRtbD4K';
+}
+
+window.openSidebar = function(){ document.getElementById('sidebar').classList.add('active'); document.getElementById('sidebarOverlay').classList.add('active'); }
+window.closeSidebar = function(){ document.getElementById('sidebar').classList.remove('active'); document.getElementById('sidebarOverlay').classList.remove('active'); }
+window.filterRooms = function(q){
+  q=q.toLowerCase().trim();
+  document.querySelectorAll('.y99-room').forEach(room=>{
+    const name = room.querySelector('.y99-room-name')?.innerText.toLowerCase() || '';
+    const last = room.querySelector('.y99-room-last')?.innerText.toLowerCase() || '';
+    room.style.display = (name.includes(q) || last.includes(q) || q==='') ? 'flex' : 'none';
+  });
+}
+
+// Inbox logic
+function escapeHtml(t){ const d=document.createElement('div'); d.textContent=t; return d.innerHTML; }
+function getTimeStr(){ const now=new Date(); let h=now.getHours(); const m=now.getMinutes().toString().padStart(2,'0'); const am=h>=12?'PM':'AM'; h=h%12||12; return h+':'+m+' '+am; }
+
+let pendingRooms = JSON.parse(localStorage.getItem('pendingRooms') || 'null');
+if(!pendingRooms){
+  pendingRooms = [{id:'notif_bot', name:"Notification_Bot!", last:"Please verify your email...", time:"now", color:"linear-gradient(135deg,#3b82f6,#7c5cf0)", unread:true}];
+  localStorage.setItem('pendingRooms', JSON.stringify(pendingRooms));
+}
+let yourRooms = JSON.parse(localStorage.getItem('yourConversations') || '[]');
+const botTexts = [
+  "Please Verify your email, <go in manu profile and verify your email>",
+  "Go to setting for set your sounds system and our suggestions if you are girl off your pm in setting",
+  "Thanks for reading our important messages"
+];
+let chatHistory = JSON.parse(localStorage.getItem('notifChatHistory') || '[]');
+let hasBotSent = localStorage.getItem('botHasSent') === 'true';
+
+function renderLists(){
+  const pendingEl = document.getElementById('pendingList');
+  const yourEl = document.getElementById('yourList');
+  const yourEmpty = document.getElementById('yourEmpty');
+  if(!pendingEl || !yourEl) return;
+  pendingEl.innerHTML = '';
+  if(pendingRooms.length===0){
+    pendingEl.innerHTML = '<div style="padding:12px;text-align:center;color:#aaa;font-size:12px;">No pending</div>';
+  } else {
+    pendingRooms.forEach(room=>{
+      const d=document.createElement('div');
+      d.className='y99-room';
+      d.onclick=()=> openY99Chat(room,'pending');
+      d.innerHTML=`<div class="y99-room-icon" style="background:${room.color}"><i class="fa-solid fa-bell"></i></div>
+        <div class="y99-room-main"><div class="y99-room-top"><div class="y99-room-name">${room.name}</div><div class="y99-room-time">${room.time}</div></div><div class="y99-room-last">${room.last}</div></div>
+        ${room.unread?'<div style="width:8px;height:8px;background:#3b82f6;border-radius:50%;"></div>':''}`;
+      pendingEl.appendChild(d);
+    });
+  }
+  yourEl.querySelectorAll('.y99-room').forEach(e=>e.remove());
+  if(yourRooms.length===0){
+    if(yourEmpty) yourEmpty.style.display='block';
+  } else {
+    if(yourEmpty) yourEmpty.style.display='none';
+    yourRooms.forEach(room=>{
+      const d=document.createElement('div');
+      d.className='y99-room';
+      d.onclick=()=> openY99Chat(room,'your');
+      d.innerHTML=`<div class="y99-room-icon" style="background:${room.color}"><i class="fa-solid fa-bell"></i></div>
+        <div class="y99-room-main"><div class="y99-room-top"><div class="y99-room-name">${room.name}</div><div class="y99-room-time">${room.time}</div></div><div class="y99-room-last">${room.last}</div></div>`;
+      yourEl.appendChild(d);
+    });
+  }
+}
+
+window.openY99Chat = function(room, from){
+  document.getElementById('y99ChatView').classList.add('active');
+  document.getElementById('y99ChatName').innerText = room.name;
+  const msgContainer = document.getElementById('y99ChatMessages');
+  msgContainer.innerHTML='';
+
+  if(hasBotSent && chatHistory.length>0){
+    document.getElementById('y99ChatSub').innerText='';
+    chatHistory.forEach(m=>{ addY99Message(m.sender, m.text, m.time, false); });
+    if(from==='pending'){ moveToYour(); }
+    return;
+  }
+
+  document.getElementById('y99ChatSub').innerText='typing...';
+  let delay=400;
+  botTexts.forEach((txt, idx)=>{
+    setTimeout(()=> showY99Typing(), delay-200);
+    setTimeout(()=>{
+      hideY99Typing();
+      const timeStr = getTimeStr();
+      addY99Message('bot', txt, timeStr, true);
+      if(idx===botTexts.length-1){
+        document.getElementById('y99ChatSub').innerText='';
+        hasBotSent=true;
+        localStorage.setItem('botHasSent','true');
+        if(from==='pending') moveToYour();
+      }
+    }, delay);
+    delay+=1300;
+  });
+}
+
+function moveToYour(){
+  if(pendingRooms.length===0) return;
+  const room = pendingRooms[0];
+  pendingRooms=[];
+  localStorage.setItem('pendingRooms', JSON.stringify(pendingRooms));
+  if(!yourRooms.find(r=>r.id===room.id)){
+    yourRooms.unshift({id:room.id, name:room.name, last:botTexts[botTexts.length-1], time:getTimeStr(), color:room.color});
+    localStorage.setItem('yourConversations', JSON.stringify(yourRooms));
+  }
+  setTimeout(renderLists, 600);
+}
+
+window.closeY99Chat = function(){
+  document.getElementById('y99ChatView').classList.remove('active');
+  renderLists();
+}
+
+function addY99Message(sender, text, timeStr, save){
+  const container=document.getElementById('y99ChatMessages');
+  const row=document.createElement('div');
+  row.className='y99-msg-row';
+  row.innerHTML=`<div class="y99-msg-avatar ${sender==='bot'?'bot':''}">${sender==='bot'?'<i class="fa-solid fa-robot"></i>':'U'}</div>
+    <div style="display:flex;flex-direction:column;gap:2px;max-width:80%"><div class="y99-msg-bubble">${escapeHtml(text)}</div><div class="y99-msg-time">${timeStr}</div></div>`;
+  container.appendChild(row);
+  container.scrollTop=container.scrollHeight;
+  if(save){
+    chatHistory.push({sender, text, time:timeStr});
+    localStorage.setItem('notifChatHistory', JSON.stringify(chatHistory));
+  }
+}
+
+function showY99Typing(){
+  const c=document.getElementById('y99ChatMessages');
+  hideY99Typing();
+  const t=document.createElement('div');
+  t.id='y99Typing';
+  t.className='y99-msg-row';
+  t.innerHTML=`<div class="y99-msg-avatar bot"><i class="fa-solid fa-robot"></i></div><div class="y99-typing"><span></span><span></span><span></span></div>`;
+  c.appendChild(t);
+  c.scrollTop=c.scrollHeight;
+}
+function hideY99Typing(){ const t=document.getElementById('y99Typing'); if(t) t.remove(); }
+
+setTimeout(renderLists, 300);
+</script>
+</body>
+</html>
