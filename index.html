@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Aqofy - Unified App</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ===== AUTH PAGE ===== -->
+<section id="page-auth" class="page active">
+  <div class="auth-wrapper">
+    <div class="brand-top">
+      <div class="logo-wrap">
+        <div class="aqofy-logo"><span class="logo-letter">A</span><span class="logo-dot"></span></div>
+        <div class="flowing-logo">Aqofy</div>
+      </div>
+    </div>
+    <div class="auth-card">
+      <div class="tabs">
+        <button id="loginTabBtn" class="tab-btn active" onclick="switchMode('login')"><i class="fa-solid fa-right-to-bracket"></i> Login</button>
+        <button id="signupTabBtn" class="tab-btn" onclick="switchMode('signup')"><i class="fa-solid fa-user-plus"></i> Signup</button>
+      </div>
+      <h2 id="title" class="auth-title">Welcome Back</h2>
+      <p id="subtitle" class="auth-sub">Please login to continue</p>
+      <form id="authForm" onsubmit="handleAuth(event)">
+        <div id="nameGroup" class="input-group hidden">
+          <label>FULL NAME</label>
+          <input id="fullName" type="text" placeholder="John Doe">
+        </div>
+        <div class="input-group">
+          <label>EMAIL</label>
+          <input id="email" type="email" placeholder="you@example.com" required>
+        </div>
+        <div class="input-group">
+          <label>PASSWORD</label>
+          <div class="pass-wrap">
+            <input id="password" type="password" placeholder="••••••••" required>
+            <button type="button" class="eye-btn" onclick="toggleEye('password','eye1')" id="eye1" aria-label="Show password"><i class="fa-solid fa-eye"></i></button>
+          </div>
+        </div>
+        <div id="confirmGroup" class="input-group hidden">
+          <label>CONFIRM PASSWORD</label>
+          <div class="pass-wrap">
+            <input id="confirmPassword" type="password" placeholder="••••••••">
+            <button type="button" class="eye-btn" onclick="toggleEye('confirmPassword','eye2')" id="eye2" aria-label="Show password"><i class="fa-solid fa-eye"></i></button>
+          </div>
+        </div>
+        <div id="loginOptions" class="row">
+          <label class="checkbox"><input type="checkbox"> Remember</label>
+          <span class="link" onclick="openForgot()">Forgot?</span>
+        </div>
+        <button id="submitBtn" class="auth-btn" type="submit"><i class="fa-solid fa-right-to-bracket"></i> LOGIN</button>
+        <div class="divider"><span></span> OR <span></span></div>
+        <button type="button" class="guest-btn" onclick="guestLogin()">Continue as Guest</button>
+        <div id="errorBox" class="error-msg"></div>
+        <div id="successBox" class="success-msg"></div>
+      </form>
+      <div id="switchText" class="footer-text">Don't have an account? <a onclick="switchMode('signup')">Create one</a></div>
+    </div>
+  </div>
+  <!-- Forgot Modal -->
+  <div id="forgotModal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header"><h3>Reset Password</h3><button class="modal-close" onclick="closeForgot()"><i class="fa-solid fa-xmark"></i></button></div>
+      <div id="fpStep1">
+        <span class="modal-step">Step 1 of 3</span>
+        <div class="input-group"><label>ENTER YOUR EMAIL</label><input id="fpEmail" type="email" placeholder="you@gmail.com"></div>
+        <div id="fpError1" class="error-msg"></div>
+        <button class="auth-btn" onclick="sendResetCode()">Send Code</button>
+      </div>
+      <div id="fpStep2" class="hidden">
+        <span class="modal-step">Step 2 of 3</span>
+        <div class="code-info">Demo Code: <strong id="demoCode">------</strong> sent to <span id="fpEmailShow"></span></div>
+        <div class="input-group"><label>6-DIGIT CODE</label><input id="fpCode" maxlength="6" placeholder="123456"></div>
+        <div id="fpError2" class="error-msg"></div><div id="fpSuccess2" class="success-msg"></div>
+        <button class="auth-btn" onclick="verifyResetCode()">Verify</button>
+        <div class="footer-text"><a onclick="sendResetCode(true)">Resend Code</a></div>
+      </div>
+      <div id="fpStep3" class="hidden">
+        <span class="modal-step">Step 3 of 3</span>
+        <div class="input-group"><label>NEW PASSWORD</label><input id="fpNewPass" type="password"></div>
+        <div class="input-group"><label>CONFIRM NEW</label><input id="fpConfirmPass" type="password"></div>
+        <div id="fpError3" class="error-msg"></div>
+        <button class="auth-btn" onclick="resetPassword()">Reset Password</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FEATURE SELECT ===== -->
+<section id="page-feature" class="page">
+  <div class="feature-wrapper">
+    <div class="feature-card-main">
+      <h1 class="welcome-neon">Welcome to Aqofy</h1>
+      <div class="feature-head"><h2>Select your feature you want to join</h2><p>Choose one to continue — you can switch later</p></div>
+      <div id="featureGrid" class="feature-grid"></div>
+      <button id="featureContinue" class="auth-btn" onclick="confirmFeature()" disabled><span>Continue</span> →</button>
+      <div id="featureSuccess" class="success-box hidden"></div>
+      <p class="guest-note">Guest users <span style="color:#ef4444;font-weight:800">can't earn</span> — Continue, verify and unlock earnings.</p>
+    </div>
+    <p id="dynamicYearFooter" class="footer-year">© 2025–2026 Aqofy. All rights reserved.</p>
+  </div>
+</section>
+
+<!-- ===== MAIN APP ===== -->
+<section id="page-dashboard" class="page">
+  <div id="appShell">
+    <!-- Top Header -->
+    <header class="app-top-header">
+      <div class="left-icon" onclick="toggleSidebar(true)"><i class="fa-solid fa-bars"></i></div>
+      <div class="top-search-wrap"><i class="fa-solid fa-magnifying-glass"></i><input id="globalSearch" type="text" placeholder="Search" oninput="handleGlobalSearch(this.value)"></div>
+      <div class="right-icon" onclick="switchAppView('mobile')"><i class="fa-solid fa-table-cells-large"></i></div>
+    </header>
+
+    <!-- Sidebar -->
+    <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar(false)"></div>
+    <aside id="sidebar" class="sidebar">
+      <div class="sidebar-header"><h3>Aqofy Menu</h3><div class="close-btn" onclick="toggleSidebar(false)"><i class="fa-solid fa-xmark"></i></div></div>
+      <div class="sidebar-profile"><div class="sidebar-profile-avatar" id="sideAvatar">A</div><div><div class="sidebar-profile-name" id="sideName">User</div><div class="sidebar-profile-sub" id="sideEmail">Welcome</div></div></div>
+      <div class="sidebar-menu">
+        <div class="sidebar-menu-item" onclick="switchAppView('messages')"><i class="fa-solid fa-inbox"></i> Inbox</div>
+        <div class="sidebar-menu-item" onclick="switchAppView('rooms')"><i class="fa-solid fa-fire"></i> Trending Groups</div>
+        <div class="sidebar-menu-item" onclick="switchAppView('connections')"><i class="fa-solid fa-users"></i> Connections</div>
+        <div class="sidebar-menu-item" onclick="switchAppView('random')"><i class="fa-solid fa-shuffle"></i> Random Chat</div>
+        <div class="sidebar-menu-item" onclick="switchAppView('mobile')"><i class="fa-solid fa-mobile-screen-button"></i> Dashboard</div>
+        <div class="sidebar-divider"></div>
+        <div class="sidebar-menu-item" onclick="switchAppView('profile')"><i class="fa-solid fa-user"></i> Profile</div>
+        <div class="sidebar-menu-item" onclick="switchAppView('settings')"><i class="fa-solid fa-gear"></i> Settings</div>
+        <div class="sidebar-menu-item" onclick="switchAppView('support')"><i class="fa-solid fa-headset"></i> Support & Help</div>
+        <div class="sidebar-divider"></div>
+        <div class="sidebar-menu-item danger" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</div>
+      </div>
+      <div class="sidebar-footer"><button class="sidebar-cancel-btn" onclick="toggleSidebar(false)"><i class="fa-solid fa-xmark"></i> Close Menu</button></div>
+    </aside>
+
+    <!-- Content Views -->
+    <main id="dashboardContent">
+      <!-- Inbox View -->
+      <div id="view-messages" class="view-page active">
+        <div class="inbox-sections">
+          <div class="inbox-label">Pending</div><div id="pendingList"></div>
+          <div class="inbox-label">Your Conversations</div><div id="yourList"><div id="yourEmpty" class="empty-state small"><i class="fa-solid fa-inbox"></i><h4>No conversations yet</h4></div></div>
+        </div>
+        <div id="y99ChatView" class="chat-overlay">
+          <div class="y99-chat-header"><div class="y99-chat-back" onclick="closeY99Chat()"><i class="fa-solid fa-arrow-left"></i></div><div id="y99ChatAvatar" class="y99-chat-avatar" style="background:linear-gradient(135deg,#3b82f6,#7c5cf0)"><i class="fa-solid fa-bell"></i></div><div class="y99-chat-info"><div id="y99ChatName" class="y99-chat-name"></div><div id="y99ChatSub" class="y99-chat-sub"></div></div></div>
+          <div id="y99ChatMessages" class="y99-chat-messages"></div>
+        </div>
+      </div>
+
+      <!-- Rooms / Trending -->
+      <div id="view-rooms" class="view-page">
+        <div class="trending-header"><h1>Trending Groups</h1><p>Join top trending groups and start chatting.</p></div>
+        <div id="groupList" class="group-list"></div>
+      </div>
+
+      <!-- Connections -->
+      <div id="view-connections" class="view-page">
+        <div class="filter-controller"><div class="segmented-pills">
+          <button class="pill-tab active" id="tab-all" onclick="switchCategory('all')"><i class="fa-solid fa-layer-group"></i> All</button>
+          <button class="pill-tab" id="tab-friends" onclick="switchCategory('friends')"><i class="fa-solid fa-user-group"></i> Friends</button>
+          <button class="pill-tab" id="tab-requests" onclick="switchCategory('requests')"><i class="fa-solid fa-user-clock"></i> Requests</button>
+          <button class="pill-tab" id="tab-blocked" onclick="switchCategory('blocked')"><i class="fa-solid fa-user-slash"></i> Blocked</button>
+          <button class="pill-tab" id="tab-discover" onclick="switchCategory('discover')"><i class="fa-solid fa-user-plus"></i> Adds</button>
+        </div></div>
+        <div class="online-filter-bar" id="onlineBar"><span class="online-filter-lbl"><i class="fa-solid fa-circle" style="color:#22c55e;font-size:8px"></i> Show Active Online Only</span><label class="toggle-switch"><input type="checkbox" id="onlineToggle" onchange="toggleOnlineOnly(this.checked)"><span class="slider"></span></label></div>
+        <div id="directoryList" class="content-area"></div>
+      </div>
+
+      <!-- Random Chat -->
+      <div id="view-random" class="view-page">
+        <div class="rc-content">
+          <div><div class="rc-title">Random Chat</div><div class="rc-desc">Connect with random people based on interests. Safe, anonymous, and fun.</div></div>
+          <div class="rc-safe"><i class="fa-solid fa-shield-halved"></i><div class="rc-safe-text">Your safety is our priority. Be respectful. Report any inappropriate behavior.</div></div>
+          <div class="rc-card">
+            <div class="rc-card-header"><div class="rc-card-title"><i class="fa-solid fa-sliders"></i> Preferences</div></div>
+            <div class="rc-toggle-row"><div><div class="rc-toggle-label">Enable Interests</div><div class="rc-toggle-sub">Match with people who share your interests</div></div><label class="switch"><input type="checkbox" id="rcInterestToggle" checked onchange="toggleInterestSection()"><span class="slider"></span></label></div>
+            <div id="rcInterestSection" class="rc-interests-box"><div id="rcChips" class="rc-interest-chips"></div><div class="rc-interest-input-row"><input id="rcInterestInput" class="rc-interest-input" placeholder="Add interest e.g. gaming" onkeydown="if(event.key==='Enter')addInterest()"><button class="rc-add-btn" onclick="addInterest()">Add</button></div></div>
+            <div class="rc-filter-row"><button id="rcFilterAll" class="rc-filter-btn selected" onclick="setChatFilter('all')"><i class="fa-solid fa-users"></i> All</button><button id="rcFilterVerified" class="rc-filter-btn" onclick="setChatFilter('verified')"><i class="fa-solid fa-badge-check"></i> Verified Only</button></div>
+          </div>
+          <div class="rc-start-box"><div class="rc-start-left"><div class="rc-start-icon"><i class="fa-solid fa-shuffle"></i></div><div><div class="rc-start-text">Ready to chat?</div><div class="rc-start-sub">Find someone new</div></div></div><div class="rc-online" id="rcOnlineBox"><div class="rc-dot"></div><div><div class="rc-online-label">Online</div><div id="rcOnlineCount" class="rc-online-count">0</div></div></div></div>
+          <button id="rcStartBtn" class="rc-start-btn" onclick="startRandomChat()"><i class="fa-solid fa-shuffle"></i> Find Someone New</button>
+          <button class="adds-btn secondary" onclick="saveRandomPrefs()">Save Preferences</button>
+        </div>
+        <div id="rcLoadingOverlay" class="rc-loading-overlay"><div class="rc-loading-tab"><div class="rc-loading-spinner"></div><div id="rcLoadingText" class="rc-loading-title">Finding someone...</div><div class="rc-loading-sub">Matching based on your interests</div><button class="adds-btn secondary" style="margin-top:10px" onclick="cancelRandomSearch()">Cancel</button></div></div>
+      </div>
+
+      <!-- Support -->
+      <div id="view-support" class="view-page no-pad">
+        <div id="supportChatView">
+          <div class="support-header"><div class="support-back" onclick="switchAppView('messages')"><i class="fa-solid fa-arrow-left"></i></div><div id="supportAvatar" class="support-avatar"><i class="fa-solid fa-robot"></i></div><div class="support-header-info"><div class="support-header-title">Support</div><div class="support-header-sub"><span id="onlineDot" class="support-online-dot"></span><span id="headerStatusText">Support Online</span></div></div></div>
+          <div id="supportMessages" class="support-messages"></div>
+          <div id="supportEmpty" class="support-empty"><div class="support-empty-icon"><i class="fa-solid fa-headset"></i></div><div>How can we help?</div><small id="emptyDesc">Our Support Team Will Respond Within 24 Hours.</small></div>
+          <div id="supportTypingArea"></div>
+          <div id="supportInputOverlay" class="gc-input-bar-overlay" onclick="closeSupportPopups()"></div>
+          <div class="gc-input-bar"><button class="gc-plus-btn" onclick="toggleSupportPlusPopup(event)"><i class="fa-solid fa-plus"></i></button><div class="gc-plus-popup" id="supportPlusPopup"><div class="plus-option" onclick="handleSupportPlusAction('image')"><i class="fa-solid fa-image"></i> Send Image</div></div><div class="gc-input-wrap"><input id="supportInput" type="text" placeholder="Type a message..." onkeydown="if(event.key==='Enter')sendSupportMessage()"></div><button class="gc-send-btn" onclick="sendSupportMessage()"><i class="fa-solid fa-paper-plane"></i></button></div>
+        </div>
+      </div>
+
+      <!-- Settings -->
+      <div id="view-settings" class="view-page">
+        <div class="set-card"><div class="set-card-title"><i class="fa-solid fa-comments"></i> Privacy - Who can PM you?</div><div class="set-radio-group"><div class="set-radio selected" id="pmEveryone" onclick="setPmMode('everyone')"><i class="fa-solid fa-earth-asia"></i> Everyone</div><div class="set-radio" id="pmFriends" onclick="setPmMode('friends')"><i class="fa-solid fa-user-group"></i> Only Friends</div></div></div>
+        <div class="set-card"><div class="set-card-title"><i class="fa-solid fa-eye"></i> Visibility Status</div>
+          <div class="set-row"><div class="set-row-left"><i id="visibleIcon" class="fa-solid fa-eye" style="color:#22c55e;"></i><div class="set-row-info"><div class="set-row-label">Visible Mode</div><div class="set-row-sub">Show as online to everyone</div></div></div><label class="switch"><input type="checkbox" id="toggleVisible" checked onchange="handleVisibility('visible', this)"><span class="slider"></span></label></div>
+          <div class="set-row"><div class="set-row-left"><i id="invisibleIcon" class="fa-solid fa-eye-slash" style="color:#94a3b8;"></i><div class="set-row-info"><div class="set-row-label">Invisible Mode</div><div class="set-row-sub">Show as offline in PM (4 months ago)</div></div></div><label class="switch"><input type="checkbox" id="toggleInvisible" onchange="handleVisibility('invisible', this)"><span class="slider"></span></label></div>
+        </div>
+        <div class="set-card"><div class="set-card-title"><i class="fa-solid fa-check-double"></i> Read Receipts</div><div class="set-row"><div class="set-row-left"><i class="fa-solid fa-check-double" style="color:#3b82f6;"></i><div class="set-row-info"><div class="set-row-label">Double Tick in PM</div><div class="set-row-sub">Others know you read</div></div></div><label class="switch"><input type="checkbox" id="toggleReadReceipt" checked onchange="toggleSetting(this,'readReceipt')"><span class="slider"></span></label></div></div>
+        <div class="set-card"><div class="set-card-title"><i class="fa-solid fa-volume-high"></i> Sounds</div>
+          <div class="set-row"><div class="set-row-left"><i id="allSoundsIcon" class="fa-solid fa-volume-high" style="color:#3b82f6;"></i><div class="set-row-info"><div class="set-row-label">All Sounds</div><div class="set-row-sub">Master sound control</div></div></div><label class="switch"><input type="checkbox" id="toggleAllSounds" checked onchange="toggleSetting(this,'allSounds')"><span class="slider"></span></label></div>
+          <div class="set-row" id="msgSoundRow"><div class="set-row-left"><i class="fa-solid fa-music" style="color:#22c55e;"></i><div class="set-row-info"><div class="set-row-label">Message Sounds</div><div class="set-row-sub">Incoming / sending</div></div></div><label class="switch"><input type="checkbox" id="toggleMsgSound" checked onchange="toggleSetting(this,'msgSound')"><span class="slider"></span></label></div>
+        </div>
+      </div>
+
+      <!-- Profile -->
+      <div id="view-profile" class="view-page">
+        <div class="profile-hero">
+          <div class="profile-pic-wrap"><div id="profilePicAvatar" class="profile-avatar"></div><button class="pic-edit" onclick="triggerProfilePicChange()"><i class="fa-solid fa-camera"></i></button></div>
+          <input type="file" id="profilePicInput" accept="image/*" hidden onchange="handleProfilePicSelect(event)">
+          <h3 id="profileDisplayName">User</h3><p id="profileDisplayEmail">email</p>
+          <div class="profile-actions"><button class="adds-btn secondary" onclick="deleteProfilePic()"><i class="fa-solid fa-trash"></i> Remove Pic</button></div>
+        </div>
+        <div class="profile-form">
+          <div class="input-group"><label>Name</label><input id="pfName" placeholder="Your name"></div>
+          <div class="input-group"><label>Bio</label><input id="pfBio" placeholder="Tell about yourself"></div>
+          <div class="input-group"><label>Location</label><input id="pfLocation" placeholder="City, Country"></div>
+          <div class="input-group"><label>Gender</label><select id="pfGender" class="cr-input"><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option></select></div>
+          <div class="input-group"><label>Age</label><input id="pfAge" type="number" placeholder="18"></div>
+          <div class="input-group"><label>Language</label><input id="pfLanguage" placeholder="English, Urdu"></div>
+          <button id="profileSaveBtn" class="auth-btn" onclick="saveProfileData()"><i class="fa-solid fa-floppy-disk"></i> Save Profile</button>
+          <div class="set-card" style="margin-top:12px"><div class="set-row"><div class="set-row-left"><div class="set-row-info"><div class="set-row-label" style="color:#ef4444">Deactivate Account</div><div class="set-row-sub">Temporarily disable</div></div></div><button class="adds-btn secondary" onclick="deactivateAccount()">Deactivate</button></div><div class="set-row"><div class="set-row-left"><div class="set-row-info"><div class="set-row-label" style="color:#ef4444">Delete Account</div><div class="set-row-sub">Permanent after 20 days</div></div></div><button class="adds-btn" style="background:#ef4444" onclick="deleteAccount()">Delete</button></div></div>
+        </div>
+      </div>
+
+      <!-- Mobile Dashboard -->
+      <div id="view-mobile" class="view-page dark">
+        <div class="mobile-dashboard-body"><div class="app-grid" id="appGrid">
+          <div class="app-item" data-name="rooms" onclick="switchAppView('rooms')"><div class="app-icon" style="background:linear-gradient(135deg,#3b82f6,#7c5cf0)"><i class="fa-solid fa-house"></i></div><div class="app-label">Rooms</div></div>
+          <div class="app-item" data-name="messages" onclick="switchAppView('messages')"><div class="app-icon" style="background:linear-gradient(135deg,#10b981,#06b6d4)"><i class="fa-solid fa-message"></i></div><div class="app-label">Messages</div></div>
+          <div class="app-item" data-name="people" onclick="switchAppView('connections')"><div class="app-icon" style="background:linear-gradient(135deg,#f59e0b,#ef4444)"><i class="fa-solid fa-users"></i></div><div class="app-label">People</div></div>
+          <div class="app-item" data-name="random" onclick="switchAppView('random')"><div class="app-icon" style="background:linear-gradient(135deg,#f97316,#eab308)"><i class="fa-solid fa-shuffle"></i></div><div class="app-label">Random</div></div>
+          <div class="app-item" data-name="profile" onclick="switchAppView('profile')"><div class="app-icon" style="background:linear-gradient(135deg,#6366f1,#3b82f6)"><i class="fa-solid fa-user"></i></div><div class="app-label">Profile</div></div>
+          <div class="app-item" data-name="settings" onclick="switchAppView('settings')"><div class="app-icon" style="background:linear-gradient(135deg,#64748b,#334155)"><i class="fa-solid fa-gear"></i></div><div class="app-label">Settings</div></div>
+          <div class="app-item" data-name="support" onclick="switchAppView('support')"><div class="app-icon" style="background:linear-gradient(135deg,#06b6d4,#10b981)"><i class="fa-solid fa-headset"></i></div><div class="app-label">Support</div></div>
+          <div class="app-item" data-name="groups" onclick="switchAppView('rooms')"><div class="app-icon" style="background:linear-gradient(135deg,#8b5cf6,#ec4899)"><i class="fa-solid fa-compass"></i></div><div class="app-label">Explore</div></div>
+        </div></div>
+      </div>
+    </main>
+
+    <!-- Bottom Nav -->
+    <nav class="bottom-nav">
+      <div class="nav-item active" data-view="messages" onclick="switchAppView('messages')"><i class="fa-solid fa-message"></i><span>Messages</span></div>
+      <div class="nav-item" data-view="rooms" onclick="switchAppView('rooms')"><i class="fa-solid fa-house"></i><span>Rooms</span></div>
+      <div class="nav-item" data-view="connections" onclick="switchAppView('connections')"><i class="fa-solid fa-users"></i><span>People</span></div>
+      <div class="nav-item" data-view="profile" onclick="switchAppView('profile')"><i class="fa-solid fa-user"></i><span>Profile</span></div>
+    </nav>
+  </div>
+
+  <!-- Deactivate / Delete Overlays -->
+  <div id="deactivateOverlay" class="rc-loading-overlay"><div class="rc-loading-tab"><h3>Deactivate Account?</h3><p id="deactTimerText" style="font-size:12px;color:#64748b;margin:8px 0">Please wait 15s</p><div style="display:flex;gap:8px;width:100%"><button class="adds-btn secondary" style="flex:1" onclick="closeDeactivatePopup()">Cancel</button><button id="deactConfirmBtn" class="adds-btn" style="flex:1" onclick="confirmDeactivateAction()">Confirm</button></div></div></div>
+  <div id="deleteOverlay" class="rc-loading-overlay"><div class="rc-loading-tab"><h3 style="color:#ef4444">Delete Account?</h3><p id="delTimerText" style="font-size:12px;color:#64748b;margin:8px 0">Please wait 15s</p><p style="font-size:11px;color:#ef4444">This is permanent after 20 days</p><div style="display:flex;gap:8px;width:100%;margin-top:10px"><button class="adds-btn secondary" style="flex:1" onclick="closeDeletePopup()">Cancel</button><button id="delConfirmBtn" class="adds-btn" style="flex:1;background:#ef4444" onclick="confirmDeleteAction()">Delete</button></div></div></div>
+
+  <!-- Category Modal for Support -->
+  <div id="supportCategoryModal"><div class="cat-modal"><h3>How can we help?</h3><p>Select category to continue</p><div class="cat-grid"><div class="cat-option" data-value="Account Issue" onclick="selectCategory(this)"><i class="fa-solid fa-user-gear"></i> Account</div><div class="cat-option" data-value="Payment Issue" onclick="selectCategory(this)"><i class="fa-solid fa-credit-card"></i> Payment</div><div class="cat-option" data-value="Bug Report" onclick="selectCategory(this)"><i class="fa-solid fa-bug"></i> Bug</div><div class="cat-option" data-value="Other" onclick="selectCategory(this)"><i class="fa-solid fa-ellipsis"></i> Other</div></div><button id="catContinueBtn" class="auth-btn" onclick="continueToSupport()">Continue</button></div></div>
+</section>
+
+<script src="app.js"></script>
+</body>
+</html>
