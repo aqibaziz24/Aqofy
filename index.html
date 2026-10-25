@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login + Chat Dashboard</title>
+<link rel="stylesheet" href="style.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+</head>
+<body>
+<div id="app">
+  <!-- LOGIN VIEW -->
+  <div id="login-view" class="view active">
+    <div class="login-bg"></div>
+    <div class="login-card">
+      <div class="login-header">
+        <div class="logo-icon">✨</div>
+        <h1>Welcome Back</h1>
+        <p>Login to continue to chat dashboard</p>
+      </div>
+      <div class="form">
+        <div class="input-group">
+          <span class="input-icon">📧</span>
+          <input type="email" id="email" placeholder="Email address">
+        </div>
+        <div class="input-group">
+          <span class="input-icon">🔒</span>
+          <input type="password" id="password" placeholder="Password">
+          <button type="button" id="toggle-pass">👁️</button>
+        </div>
+        <p id="login-error" class="error"></p>
+        <button id="login-btn" class="btn-primary">
+          <span id="btn-text">Login</span>
+          <span id="btn-loader" class="loader hidden"></span>
+        </button>
+        <div class="hint">
+          <p>Demo: Any email with @ <br> Password: <b>123456</b></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD VIEW -->
+  <div id="dashboard-view" class="view">
+    <aside id="sidebar" class="sidebar">
+      <div class="sidebar-header">
+        <div class="user-info">
+          <div class="avatar" style="background:#7C3AED">U</div>
+          <div>
+            <b>Test User</b>
+            <span>Online</span>
+          </div>
+        </div>
+        <button id="logout-btn" title="Logout">⎋</button>
+      </div>
+      <div class="search-box">
+        <span>🔍</span>
+        <input type="text" id="search" placeholder="Search contacts...">
+      </div>
+      <div id="contact-list" class="contact-list"></div>
+    </aside>
+
+    <main class="chat-main">
+      <div class="chat-header">
+        <div class="chat-header-left">
+          <button id="menu-btn" class="icon-btn mobile-only">☰</button>
+          <div id="active-avatar" class="avatar"></div>
+          <div>
+            <b id="active-name"></b>
+            <span id="active-status"></span>
+          </div>
+        </div>
+        <div class="chat-header-right">
+          <button class="icon-btn">📞</button>
+          <button class="icon-btn">📹</button>
+          <button class="icon-btn">⋮</button>
+        </div>
+      </div>
+
+      <div id="messages" class="messages"></div>
+
+      <div class="chat-input-area">
+        <div class="input-tools">
+          <button id="emoji-btn" class="icon-btn">😊</button>
+          <div id="emoji-picker" class="emoji-picker hidden"></div>
+          <button class="icon-btn">📎</button>
+        </div>
+        <input type="text" id="msg-input" placeholder="Type a message...">
+        <button id="send-btn" class="send-btn">➤</button>
+      </div>
+    </main>
+  </div>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
